@@ -14,7 +14,8 @@ This function only works for Vue 3
 
 ```html
 <template>
-  <div v-for="i of 5" :key="i" :ref="refs.set"></div>
+  <!-- Vue begins iteration over numbers from 1 so index must be used here -->
+  <div v-for="(i, index) of 5" :key="i" :ref="refs.set(index)"></div>
 </template>
 
 <script setup lang="ts">

@@ -15,7 +15,7 @@ watch(refs, async () => {
 </script>
 
 <template>
-  <span v-for="i of count" :key="i" :ref="refs.set" class="mr-2">
+  <span v-for="(i, index) of count" :key="i" :ref="refs.set(index)" class="mr-2">
     {{ i }}
   </span>
   <br>

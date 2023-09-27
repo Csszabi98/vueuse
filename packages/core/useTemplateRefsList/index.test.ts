@@ -8,7 +8,7 @@ if (isVue2) {
   it('stub', () => {})
 }
 else {
-  const Component1 = defineComponent({
+  const createComponent1 = (legacy: boolean) => defineComponent({
     setup() {
       const list = ref([1, 2, 3])
       const refs = useTemplateRefsList()
@@ -17,8 +17,8 @@ else {
     render() {
       return h(
         'div',
-        this.list.map(item => h('div', {
-          ref: this.refs.set,
+        this.list.map((item, index) => h('div', {
+          ref: legacy ? this.refs.set : this.refs.set(index),
           id: `div${item}`,
         })),
       )
@@ -48,7 +48,7 @@ else {
     },
   })
 
-  const testCom2 = defineComponent({
+  const createTestComp2 = (legacy: boolean) => defineComponent({
     setup() {
       const list = ref([1, 2, 3])
       const refs = useTemplateRefsList<ChildAPI>()
@@ -57,21 +57,26 @@ else {
     render() {
       return h(
         'div',
-        this.list.map(item => h(Child, {
-          ref: this.refs.set,
+        this.list.map((item, index) => h(Child, {
+          ref: legacy ? this.refs.set : this.refs.set(index),
           id: item,
         })),
       )
     },
   })
 
+  const syntaxes = [
+    { legacy: true, syntax: 'refs.set' },
+    { legacy: false, syntax: 'refs.set(index)' },
+  ]
+
   describe('useTemplateRefsList', () => {
     it('should be defined', () => {
       expect(useTemplateRefsList).toBeDefined()
     })
 
-    it('ref all 3 divs', () => {
-      const vm = mount(Component1)
+    it.each(syntaxes)('ref all 3 divs', ({ legacy }) => {
+      const vm = mount(createComponent1(legacy))
 
       expect(vm.refs).toBeDefined()
       expect(vm.refs.length).toBe(3)
@@ -80,8 +85,8 @@ else {
       expect(vm.refs[2]).toBe(vm.$el.querySelector('#div3'))
     })
 
-    it('v-for source update', async () => {
-      const vm = mount(Component1)
+    it.each(syntaxes)('v-for source update', async ({ legacy }) => {
+      const vm = mount(createComponent1(legacy))
 
       vm.list = [1, 2, 3, 4]
       await nextTick()
@@ -90,8 +95,8 @@ else {
       expect(vm.refs[3]).toBe(vm.$el.querySelector('#div4'))
     })
 
-    it('call child component methods', async () => {
-      const vm = mount(testCom2)
+    it.each(syntaxes)('`$syntax` syntax call child component methods', async ({ legacy }) => {
+      const vm = mount(createTestComp2(legacy))
 
       expect(vm.refs[0].foo()).toBe('foo1')
       expect(vm.refs[1].foo()).toBe('foo2')
